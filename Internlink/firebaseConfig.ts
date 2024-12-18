@@ -5,12 +5,12 @@ import { getStorage } from "firebase/storage";
 
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC_ImRhKfHYSpf2GExzQ2__yqyrfjBlKFk",
-  authDomain: "internlink-c1eae.firebaseapp.com",
-  projectId: "internlink-c1eae",
-  storageBucket: "internlink-c1eae.appspot.com",
-  messagingSenderId: "882823245148",
-  appId: "882823245148:web:61459468157edbdaaba599",
+  apiKey: "AIzaSyB3AY6PO13D0J1twqo7bbA9syPImSSK24U",
+  authDomain: "internlink-7b957.firebaseapp.com",
+  projectId: "internlink-7b957",
+  storageBucket: "internlink-7b957.firebasestorage.app",
+  messagingSenderId: "131236590681",
+  appId: "1:131236590681:web:d7422d5fa015adcfe6ad48"
 };
 
 const app = initializeApp(firebaseConfig);
