@@ -3,6 +3,7 @@ import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { auth } from '../../firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'expo-router';
+import styles from '../css/AuthStyles'; // Zorg ervoor dat je een gestileerde map hebt voor stijlen
 
 const LoginCompanyScreen = () => {
   const [email, setEmail] = useState('');
@@ -13,9 +14,9 @@ const LoginCompanyScreen = () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       Alert.alert('Login Successful', 'You have successfully logged in.');
-      router.push('../company');
+      router.push('/company/MatchesScreen'); // Navigeren naar de matches pagina van het bedrijf
     } catch (error: any) {
-      Alert.alert('Login Failed', error.message || 'The email or password is incorrect.');
+      Alert.alert('Login Failed', error.message || 'An error occurred during login.');
     }
   };
 
@@ -35,31 +36,17 @@ const LoginCompanyScreen = () => {
         onChangeText={setPassword}
         secureTextEntry
       />
-      <Button title="Login" onPress={handleLogin} />
-      <Button title="Register" onPress={() => router.push('/auth/RegisterCompanyScreen')} />
-      <Button title="Back to User Selection" onPress={() => router.push('/auth/UserTypeSelectionScreen')} />
+      
+      {/* Login Button */}
+      <Button title="Login" onPress={handleLogin} color="#007BFF" />
+      
+      {/* Go to Register Button */}
+      <Button title="Go to Register" onPress={() => router.push('/auth/RegisterCompanyScreen')} color="#555" />
+      
+      {/* Back to User Type Selection Button */}
+      <Button title="Back to User Selection" onPress={() => router.push('/auth/UserTypeSelectionScreen')} color="#777" />
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 16,
-  },
-  title: {
-    fontSize: 24,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    marginVertical: 10,
-    borderRadius: 5,
-  },
-});
 
 export default LoginCompanyScreen;
