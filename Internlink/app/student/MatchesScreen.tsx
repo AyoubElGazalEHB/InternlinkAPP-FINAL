@@ -12,10 +12,11 @@ type Match = {
 
 // Props voor MatchListScreen
 type MatchListScreenProps = {
-  matches: Match[]; // Array van matches die we laten zien
+  matches?: Match[]; // Array van matches die we laten zien (optioneel voor fallback)
 };
 
-const MatchListScreen: React.FC<MatchListScreenProps> = ({ matches }) => {
+const MatchListScreen: React.FC<MatchListScreenProps> = ({ matches = [] }) => {
+  // Component voor een enkele matchkaart
   const MatchCard: React.FC<{ match: Match }> = ({ match }) => (
     <View style={styles.card}>
       <Image
