@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, Image } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, Image } from 'react-native';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
+import styles from '../css/AuthStyles'; // Correct file path for your styles
 
-// Data structure for a company
 type Company = {
   id: string;
   companyName: string;
@@ -12,45 +12,73 @@ type Company = {
   sector: string;
 };
 
+// Use mock data for testing
+const mockCompanies = [
+  {
+    id: '1',
+    companyName: 'EcoBuild',
+    companyPhoto: 'https://via.placeholder.com/60?text=EB',
+    email: 'info@ecobuild.com',
+    sector: 'Construction',
+  },
+  {
+    id: '2',
+    companyName: 'FinTech Innovators',
+    companyPhoto: 'https://via.placeholder.com/60?text=FI',
+    email: 'contact@fintech.com',
+    sector: 'Finance',
+  },
+  {
+    id: '3',
+    companyName: 'EduPro',
+    companyPhoto: 'https://via.placeholder.com/60?text=EP',
+    email: 'support@edupro.com',
+    sector: 'Education',
+  },
+];
+
 const StudentCompanyScreen: React.FC = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Fetching data from Firebase (commented for testing mock data)
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        console.log("Fetching companies..."); // Debugging step
         const querySnapshot = await getDocs(collection(db, 'users'));
         const fetchedCompanies: Company[] = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           companyName: doc.data().companyName || 'No Name',
-          companyPhoto: doc.data().companyPhoto || null,
+          companyPhoto: doc.data().companyPhoto || 'https://via.placeholder.com/60',
           email: doc.data().email || 'No Email',
           sector: doc.data().sector || 'Unknown Sector',
         }));
-        console.log('Fetched Companies:', fetchedCompanies); // Debug output
         setCompanies(fetchedCompanies);
-      } catch (error) {
-        console.error('Error fetching companies:', error);
+      } catch (err) {
+        setError('Failed to load company data. Please try again later.');
+        console.error('Error fetching companies:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCompanies();
+    // Uncomment this line to use Firebase data
+    // fetchCompanies();
+
+    // For testing purposes, we can use mockCompanies
+    setCompanies(mockCompanies);
+    setLoading(false);
   }, []);
 
   const CompanyCard: React.FC<{ company: Company }> = ({ company }) => (
     <View style={styles.card}>
-      {company.companyPhoto ? (
-        <Image source={{ uri: company.companyPhoto }} style={styles.photo} />
-      ) : (
-        <View style={styles.placeholder}>
-          <Text style={styles.placeholderText}>No Image</Text>
-        </View>
-      )}
+      <Image
+        source={{ uri: company.companyPhoto || 'https://via.placeholder.com/60' }}
+        style={styles.photo}
+      />
       <View style={styles.info}>
-        <Text style={styles.name}>Name: {company.companyName}</Text>
+        <Text style={styles.name}>{company.companyName}</Text>
         <Text style={styles.description}>Email: {company.email}</Text>
         <Text style={styles.description}>Sector: {company.sector}</Text>
       </View>
@@ -60,8 +88,16 @@ const StudentCompanyScreen: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color="#007bff" />
         <Text>Loading companies...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
       </View>
     );
   }
@@ -71,74 +107,12 @@ const StudentCompanyScreen: React.FC = () => {
       <Text style={styles.title}>Registered Companies</Text>
       <FlatList
         data={companies}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id || item.companyName}
         renderItem={({ item }) => <CompanyCard company={item} />}
         contentContainerStyle={styles.list}
       />
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-    padding: 10,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  list: {
-    paddingBottom: 20,
-  },
-  card: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    marginBottom: 10,
-    borderRadius: 10,
-    overflow: 'hidden',
-    elevation: 3,
-    padding: 10,
-    alignItems: 'center',
-  },
-  photo: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginRight: 15,
-  },
-  placeholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginRight: 15,
-    backgroundColor: '#ddd',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  placeholderText: {
-    color: '#888',
-    fontSize: 12,
-  },
-  info: {
-    flex: 1,
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  description: {
-    fontSize: 14,
-    color: '#6c757d',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
 
 export default StudentCompanyScreen;
