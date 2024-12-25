@@ -1,137 +1,399 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
-import { auth } from '../../firebaseConfig';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { useRouter } from 'expo-router';
-import styles from '../css/AuthStyles'; // Zorg ervoor dat je het juiste pad hebt naar authstyles.js
-import { Picker } from '@react-native-picker/picker'; // Gebruik Picker voor de interesses
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { auth, db } from "../../firebaseConfig";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import { useRouter } from "expo-router";
 
 const RegisterStudentScreen = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [school, setSchool] = useState('');
-  const [location, setLocation] = useState('');
-  const [interests, setInterests] = useState('');
-  const [dobDay, setDobDay] = useState(''); // Dag van de geboortedatum
-  const [dobMonth, setDobMonth] = useState(''); // Maand van de geboortedatum
-  const [dobYear, setDobYear] = useState(''); // Jaar van de geboortedatum
   const router = useRouter();
 
+  // State for form inputs
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [study, setStudy] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [password, setPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
+  const [externalLink, setExternalLink] = useState(""); // State for LinkedIn link
+  const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [customIndustry, setCustomIndustry] = useState("");
+  const [customSkill, setCustomSkill] = useState("");
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<"error" | "success" | "">("");
+
+  const industries = ["Technology", "Marketing", "Finance", "Healthcare"];
+  const skills = ["Communication", "Problem Solving", "Teamwork", "Creativity"];
+
   const handleRegister = async () => {
-    // Valideer geboortedatum
-    const birthDate = new Date(`${dobMonth}/${dobDay}/${dobYear}`);
-    const age = calculateAge(birthDate);
-    if (age < 16) {
-      Alert.alert('Registration Failed', 'You must be at least 16 years old.');
+    setMessage("");
+    setMessageType("");
+
+    if (
+      !firstName ||
+      !lastName ||
+      !study ||
+      !email ||
+      !phoneNumber ||
+      !password ||
+      !repeatPassword ||
+      !externalLink // Ensure LinkedIn link is provided
+    ) {
+      setMessage("Please fill out all fields.");
+      setMessageType("error");
+      return;
+    }
+    if (password !== repeatPassword) {
+      setMessage("Passwords do not match.");
+      setMessageType("error");
       return;
     }
 
+    // Add custom entries if they are not empty
+    if (customIndustry.trim()) {
+      selectedIndustries.push(customIndustry.trim());
+    }
+    if (customSkill.trim()) {
+      selectedSkills.push(customSkill.trim());
+    }
+
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      Alert.alert('Registration Successful', 'You have successfully registered.');
-      router.push('/auth/LoginStudentScreen'); // Navigeren naar de login pagina
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const userId = userCredential.user.uid;
+
+      // Use setDoc to set the uid as the document ID
+      await setDoc(doc(db, "students", userId), {
+        uid: userId,
+        firstName,
+        lastName,
+        study,
+        email,
+        phoneNumber,
+        externalLink, // Save LinkedIn link
+        industries: selectedIndustries,
+        skills: selectedSkills,
+        createdAt: new Date(),
+      });
+
+      setMessage("Student account created successfully!");
+      setMessageType("success");
+      setTimeout(() => router.replace("/auth/LoginStudentScreen"), 1500);
     } catch (error: any) {
-      Alert.alert('Registration Failed', error.message || 'An error occurred during registration.');
+      setMessage(error.message || "An error occurred during registration.");
+      setMessageType("error");
     }
   };
 
-  // Functie om leeftijd te berekenen
-  const calculateAge = (dob: Date) => {
-    const currentDate = new Date();
-    let age = currentDate.getFullYear() - dob.getFullYear();
-    const month = currentDate.getMonth();
-    if (month < dob.getMonth() || (month === dob.getMonth() && currentDate.getDate() < dob.getDate())) {
-      age--;
+  const toggleSelection = (
+    item: string,
+    selectedItems: string[],
+    setSelectedItems: React.Dispatch<React.SetStateAction<string[]>>
+  ) => {
+    if (selectedItems.includes(item)) {
+      setSelectedItems(selectedItems.filter((i) => i !== item));
+    } else {
+      setSelectedItems([...selectedItems, item]);
     }
     return age;
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Student Register</Text>
-
-      {/* Email */}
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-      />
-
-      {/* Password */}
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-
-      {/* School */}
-      <TextInput
-        style={styles.input}
-        placeholder="School"
-        value={school}
-        onChangeText={setSchool}
-      />
-
-      {/* Location */}
-      <TextInput
-        style={styles.input}
-        placeholder="Location"
-        value={location}
-        onChangeText={setLocation}
-      />
-
-      {/* Geboortedatum */}
-      <Text style={styles.label}>Date of Birth</Text>
-      <View style={styles.dateInputContainer}>
-        <TextInput
-          style={styles.dateInput}
-          placeholder="DD"
-          value={dobDay}
-          onChangeText={setDobDay}
-          keyboardType="numeric"
-        />
-        <TextInput
-          style={styles.dateInput}
-          placeholder="MM"
-          value={dobMonth}
-          onChangeText={setDobMonth}
-          keyboardType="numeric"
-        />
-        <TextInput
-          style={styles.dateInput}
-          placeholder="YYYY"
-          value={dobYear}
-          onChangeText={setDobYear}
-          keyboardType="numeric"
-        />
-      </View>
-
-      {/* Interests */}
-      <Text style={styles.label}>Interests</Text>
-      <Picker
-        selectedValue={interests}
-        style={styles.picker}
-        onValueChange={(itemValue) => setInterests(itemValue)}
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        style={styles.avoidingView}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <Picker.Item label="Select an interest" value="" />
-        <Picker.Item label="Technology" value="Technology" />
-        <Picker.Item label="Business" value="Business" />
-        <Picker.Item label="Arts" value="Arts" />
-        <Picker.Item label="Sports" value="Sports" />
-        <Picker.Item label="Science" value="Science" />
-      </Picker>
+        <ScrollView contentContainerStyle={styles.container}>
+          <Text style={styles.title}>Register as a Student</Text>
 
-      {/* Buttons Container */}
-      <View style={styles.buttonsContainer}>
-        <Button title="Register" onPress={handleRegister} color="#007BFF" />
-        <Button title="Go to Login" onPress={() => router.push('/auth/LoginStudentScreen')} color="#555" />
-        <Button title="Back to User Selection" onPress={() => router.push('/auth/UserTypeSelectionScreen')} color="#777" />
-      </View>
-    </View>
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Account Information</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="First Name"
+              value={firstName}
+              onChangeText={setFirstName}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Last Name"
+              value={lastName}
+              onChangeText={setLastName}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Study (e.g., Computer Science)"
+              value={study}
+              onChangeText={setStudy}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Student Email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Phone Number"
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              keyboardType="phone-pad"
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="LinkedIn Profile Link"
+              value={externalLink}
+              onChangeText={setExternalLink}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Repeat Password"
+              value={repeatPassword}
+              onChangeText={setRepeatPassword}
+              secureTextEntry
+            />
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Industries</Text>
+            <View style={styles.tagContainer}>
+              {industries.map((industry) => (
+                <TouchableOpacity
+                  key={industry}
+                  style={[
+                    styles.tag,
+                    selectedIndustries.includes(industry) && styles.selectedTag,
+                  ]}
+                  onPress={() =>
+                    toggleSelection(industry, selectedIndustries, setSelectedIndustries)
+                  }
+                >
+                  <Text
+                    style={[
+                      styles.tagText,
+                      selectedIndustries.includes(industry) && styles.selectedTagText,
+                    ]}
+                  >
+                    {industry}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TextInput
+              style={styles.input}
+              placeholder="Add a custom industry"
+              value={customIndustry}
+              onChangeText={setCustomIndustry}
+            />
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Skills</Text>
+            <View style={styles.tagContainer}>
+              {skills.map((skill) => (
+                <TouchableOpacity
+                  key={skill}
+                  style={[
+                    styles.tag,
+                    selectedSkills.includes(skill) && styles.selectedTag,
+                  ]}
+                  onPress={() =>
+                    toggleSelection(skill, selectedSkills, setSelectedSkills)
+                  }
+                >
+                  <Text
+                    style={[
+                      styles.tagText,
+                      selectedSkills.includes(skill) && styles.selectedTagText,
+                    ]}
+                  >
+                    {skill}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TextInput
+              style={styles.input}
+              placeholder="Add a custom skill"
+              value={customSkill}
+              onChangeText={setCustomSkill}
+            />
+          </View>
+
+          {message ? (
+            <Text
+              style={[
+                styles.message,
+                messageType === "error" ? styles.error : styles.success,
+              ]}
+            >
+              {message}
+            </Text>
+          ) : null}
+
+          <TouchableOpacity style={styles.button} onPress={handleRegister}>
+            <Text style={styles.buttonText}>Register</Text>
+          </TouchableOpacity>
+
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={[styles.secondaryButton, styles.leftButton]}
+              onPress={() => router.push("/auth/LoginStudentScreen")}
+            >
+              <Text style={styles.secondaryButtonText}>Go to Login</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.secondaryButton, styles.rightButton]}
+              onPress={() => router.push("/auth/UserTypeSelectionScreen")}
+            >
+              <Text style={styles.secondaryButtonText}>Change Role</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F5F7FA",
+  },
+  avoidingView: {
+    flex: 1,
+  },
+  container: {
+    flexGrow: 1,
+    padding: 20,
+    backgroundColor: "#F5F7FA",
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: "bold",
+    color: "#333",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#555",
+    marginBottom: 10,
+  },
+  input: {
+    backgroundColor: "#F0F4F8",
+    padding: 12,
+    marginBottom: 10,
+    borderRadius: 8,
+    fontSize: 14,
+    borderColor: "#E0E6ED",
+    borderWidth: 1,
+    color: "#333",
+  },
+  tagContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginVertical: 10,
+  },
+  tag: {
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    backgroundColor: "#F0F4F8",
+    borderRadius: 20,
+    marginRight: 10,
+    marginBottom: 10,
+  },
+  selectedTag: {
+    backgroundColor: "#007BFF",
+  },
+  tagText: {
+    fontSize: 14,
+    color: "#555",
+  },
+  selectedTagText: {
+    color: "#fff",
+  },
+  button: {
+    backgroundColor: "#007BFF",
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 20,
+  },
+  secondaryButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  leftButton: {
+    backgroundColor: "#EAF4FF",
+  },
+  rightButton: {
+    backgroundColor: "#EAF4FF",
+  },
+  secondaryButtonText: {
+    color: "#007BFF",
+    fontSize: 14,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  message: {
+    textAlign: "center",
+    marginBottom: 10,
+    fontSize: 14,
+  },
+  error: {
+    color: "#E74C3C",
+  },
+  success: {
+    color: "#2ECC71",
+  },
+});
 
 export default RegisterStudentScreen;
