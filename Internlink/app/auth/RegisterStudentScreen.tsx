@@ -110,6 +110,7 @@ const RegisterStudentScreen = () => {
     } else {
       setSelectedItems([...selectedItems, item]);
     }
+    return age;
   };
 
   return (
