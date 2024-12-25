@@ -1,52 +1,170 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { auth } from '../../firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'expo-router';
-import styles from '../css/AuthStyles'; // Zorg ervoor dat je een gestileerde map hebt voor stijlen
 
 const LoginCompanyScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<'error' | ''>('');
   const router = useRouter();
 
   const handleLogin = async () => {
+    setMessage('');
+    setMessageType('');
+
+    if (!email || !password) {
+      setMessage('Please fill out both fields.');
+      setMessageType('error');
+      return;
+    }
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      Alert.alert('Login Successful', 'You have successfully logged in.');
-      router.push('/company/MatchesScreen'); // Navigeren naar de matches pagina van het bedrijf
+      setMessage('');
+      router.push('../company');
     } catch (error: any) {
-      Alert.alert('Login Failed', error.message || 'An error occurred during login.');
+      setMessage(error.message || 'The email or password is incorrect.');
+      setMessageType('error');
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Company Login</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      
-      {/* Login Button */}
-      <Button title="Login" onPress={handleLogin} color="#007BFF" />
-      
-      {/* Go to Register Button */}
-      <Button title="Go to Register" onPress={() => router.push('/auth/RegisterCompanyScreen')} color="#555" />
-      
-      {/* Back to User Type Selection Button */}
-      <Button title="Back to User Selection" onPress={() => router.push('/auth/UserTypeSelectionScreen')} color="#777" />
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.container}
+      >
+        <View style={styles.card}>
+          <Text style={styles.title}>Company Login</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoCapitalize="none"
+          />
+
+          {message ? (
+            <Text style={[styles.message, styles.error]}>{message}</Text>
+          ) : null}
+
+          <TouchableOpacity style={styles.button} onPress={handleLogin}>
+            <Text style={styles.buttonText}>Login</Text>
+          </TouchableOpacity>
+
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={[styles.secondaryButton, styles.leftButton]}
+              onPress={() => router.push('/auth/RegisterCompanyScreen')}
+            >
+              <Text style={styles.secondaryButtonText}>Register</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.secondaryButton, styles.rightButton]}
+              onPress={() => router.push('/auth/UserTypeSelectionScreen')}
+            >
+              <Text style={styles.secondaryButtonText}>Change Role</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F5F7FA',
+  },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: '#F5F7FA',
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  input: {
+    backgroundColor: '#F0F4F8',
+    padding: 12,
+    marginBottom: 15,
+    borderRadius: 8,
+    fontSize: 14,
+    borderColor: '#E0E6ED',
+    borderWidth: 1,
+    color: '#333',
+  },
+  button: {
+    backgroundColor: '#007BFF',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  secondaryButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  leftButton: {
+    backgroundColor: '#EAF4FF',
+  },
+  rightButton: {
+    backgroundColor: '#EAF4FF',
+  },
+  secondaryButtonText: {
+    color: '#007BFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  message: {
+    textAlign: 'center',
+    marginBottom: 10,
+    fontSize: 14,
+  },
+  error: {
+    color: '#E74C3C',
+  },
+});
 
 export default LoginCompanyScreen;
