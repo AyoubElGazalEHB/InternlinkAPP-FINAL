@@ -7,6 +7,7 @@ const AuthStyles = StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: 'center',
+        
         padding: 16,
     },
     title: {
@@ -77,26 +78,33 @@ const AuthStyles = StyleSheet.create({
         fontSize: 16,
         color: '#fff',
     },
-
-    header: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        color: '#333', // voorbeeldkleur
-      },
-      matchItem: {
-        padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
-      },
-      matchName: {
-        fontSize: 18,
-        fontWeight: 'bold',
-      },
-      matchRole: {
-        fontSize: 16,
-        color: '#555',
-      },
+    picker: {
+        height: 50,
+        width: '100%',
+        borderWidth: 1,
+        borderColor: '#ccc',
+        marginVertical: 10,
+        borderRadius: 5,
+    },
+    dateInputContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginVertical: 10,
+    },
+    dateInput: {
+        borderWidth: 1,
+        borderColor: '#ccc',
+        padding: 12,
+        marginVertical: 5,
+        borderRadius: 5,
+        width: '30%',
+        backgroundColor: '#fff',
+    },
+    buttonsContainer: {
+        marginTop: 120,
+        justifyContent: 'center',
+        alignItems: 'center', // Zorgt ervoor dat de knoppen gecentreerd zijn
+    },
 });
 
 export default AuthStyles;
