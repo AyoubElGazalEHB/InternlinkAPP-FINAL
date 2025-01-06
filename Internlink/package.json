@@ -39,6 +39,7 @@
     "react-dom": "18.3.1",
     "react-native": "0.76.5",
     "react-native-datepicker": "^1.7.2",
+    "react-native-deck-swiper": "^2.0.17",
     "react-native-dotenv": "^3.4.11",
     "react-native-gesture-handler": "~2.20.2",
     "react-native-modal-datetime-picker": "^18.0.0",
