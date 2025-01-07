@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Keyb
 import { auth } from '../../firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'expo-router';
-import styles from '../css/AuthStyles'; // Verwijzing naar de aparte stylesheet
+
 
 const LoginStudentScreen = () => {
   const [email, setEmail] = useState('');
