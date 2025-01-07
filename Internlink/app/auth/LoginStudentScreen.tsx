@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
-import { auth } from '../../firebaseConfig';
+import { auth, db } from '../../firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'expo-router';
+import styles from '../css/AuthStyles'; // Verwijzing naar de aparte stylesheet
+import { doc, getDoc } from 'firebase/firestore';
 
 
 const LoginStudentScreen = () => {
@@ -12,25 +14,35 @@ const LoginStudentScreen = () => {
   const [messageType, setMessageType] = useState<'error' | ''>('');
   const router = useRouter();
 
-  const handleLogin = async () => {
-    setMessage('');
-    setMessageType('');
+const handleLogin = async () => {
+  setMessage('');
+  setMessageType('');
 
-    if (!email || !password) {
-      setMessage('Please fill out both fields.');
+  if (!email || !password) {
+    setMessage('Please fill out both fields.');
+    setMessageType('error');
+    return;
+  }
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    const studentDoc = await getDoc(doc(db, 'students', user.uid));
+
+    if (!studentDoc.exists() || studentDoc.data().role !== 'student') {
+      setMessage('This account is not registered as a student.');
       setMessageType('error');
       return;
     }
 
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      setMessage('');
-      router.push('../student');
-    } catch (error: any) {
-      setMessage(error.message || 'The email or password is incorrect.');
-      setMessageType('error');
-    }
-  };
+    setMessage('');
+    router.push('../student');
+  } catch (error: any) {
+    setMessage(error.message || 'The email or password is incorrect.');
+    setMessageType('error');
+  }
+};
+
 
   return (
     <SafeAreaView style={styles.safeArea}>

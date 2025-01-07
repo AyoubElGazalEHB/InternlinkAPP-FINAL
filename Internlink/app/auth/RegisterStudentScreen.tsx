@@ -69,6 +69,13 @@ const RegisterStudentScreen = () => {
       selectedSkills.push(customSkill.trim());
     }
 
+   if (!externalLink || !externalLink.startsWith("https://www.linkedin.com")) {
+      setMessage("Please provide a valid LinkedIn profile link.");
+      setMessageType("error");
+      return;
+    }
+
+
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -76,6 +83,8 @@ const RegisterStudentScreen = () => {
         password
       );
       const userId = userCredential.user.uid;
+
+ 
 
       // Use setDoc to set the uid as the document ID
       await setDoc(doc(db, "students", userId), {
