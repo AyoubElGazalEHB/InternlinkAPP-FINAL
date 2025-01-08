@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
-import { auth, db } from '../../firebaseConfig';
+import { auth } from '../../firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'expo-router';
-import { doc, getDoc } from 'firebase/firestore';
 
 const LoginCompanyScreen = () => {
   const [email, setEmail] = useState('');
@@ -12,35 +11,25 @@ const LoginCompanyScreen = () => {
   const [messageType, setMessageType] = useState<'error' | ''>('');
   const router = useRouter();
 
- const handleLogin = async () => {
-  setMessage('');
-  setMessageType('');
+  const handleLogin = async () => {
+    setMessage('');
+    setMessageType('');
 
-  if (!email || !password) {
-    setMessage('Please fill out both fields.');
-    setMessageType('error');
-    return;
-  }
-
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-    const companyDoc = await getDoc(doc(db, 'companies', user.uid));
-
-    if (!companyDoc.exists() || companyDoc.data().role !== 'company') {
-      setMessage('This account is not registered as a company.');
+    if (!email || !password) {
+      setMessage('Please fill out both fields.');
       setMessageType('error');
       return;
     }
 
-    setMessage('');
-    router.push('../company');
-  } catch (error: any) {
-    setMessage(error.message || 'The email or password is incorrect.');
-    setMessageType('error');
-  }
-};
-
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      setMessage('');
+      router.push('../company');
+    } catch (error: any) {
+      setMessage(error.message || 'The email or password is incorrect.');
+      setMessageType('error');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>

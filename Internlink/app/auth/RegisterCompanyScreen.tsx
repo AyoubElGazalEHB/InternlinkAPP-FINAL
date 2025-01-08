@@ -47,18 +47,10 @@ const RegisterCompanyScreen = () => {
       return;
     }
 
-    if (!externalLink || !externalLink.startsWith("https://www.linkedin.com")) {
-      setMessage("Please provide a valid LinkedIn profile link.");
-      setMessageType("error");
-      return;
-    }
-
     try {
       // Create user in Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const userId = userCredential.user.uid;
-
-
 
       // Save company data to Firestore
       await setDoc(doc(db, 'company', userId), {

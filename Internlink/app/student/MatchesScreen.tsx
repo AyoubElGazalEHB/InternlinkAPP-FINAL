@@ -61,6 +61,10 @@ const fetchVacancies = async () => {
         ...(doc.data() as Omit<Vacancy, "id">),
       }))
       .filter((vacancy) => {
+        // Ensure `solicitants` exists and is an array before calling `.some`
+        if (!Array.isArray(vacancy.solicitants)) {
+          return true; // Include the vacancy if `solicitants` is undefined or not an array
+        }
         return !vacancy.solicitants.some(
           (solicitant) => solicitant.studentId === student.uid && solicitant.status === true
         );

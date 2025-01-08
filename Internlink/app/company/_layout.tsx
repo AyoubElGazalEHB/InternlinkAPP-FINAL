@@ -4,9 +4,9 @@ import { Tabs } from 'expo-router';
 export default function CompanyLayout() {
   return (
     <Tabs>
-      <Tabs.Screen name="matches" options={{ title: 'Matches' }} />
-      <Tabs.Screen name="notification" options={{ title: 'Notification' }} />
-      <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
+      <Tabs.Screen name="MatchesScreen" options={{ title: 'Matches' }} />
+      <Tabs.Screen name="NotificationScreen" options={{ title: 'Notification' }} />
+      <Tabs.Screen name="ProfileScreen" options={{ title: 'Profile' }} />
     </Tabs>
   );
 }

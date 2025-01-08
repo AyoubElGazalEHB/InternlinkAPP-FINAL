@@ -225,41 +225,44 @@ const CompanyMatchScreen = () => {
       ) : (
         <>
           {swipeMessage && <Text style={styles.swipeMessage}>{swipeMessage}</Text>}
-
-          <Swiper
-            cards={students}
-            renderCard={(student) => (
-              <View key={student.id} style={styles.card}>
-                <ScrollView>
-                  <Text style={styles.cardTitle}>
-                    {student.firstName} {student.lastName}
-                  </Text>
-                  <Text style={styles.cardDetails}>Email: {student.email}</Text>
-                  <Text style={styles.cardDetails}>Phone: {student.phoneNumber}</Text>
-                  <Text style={styles.cardDetails}>Study: {student.study}</Text>
-                  <Text style={styles.cardTags}>
-                    Skills: {student.skills.join(", ")}
-                  </Text>
-                  <Text style={styles.cardTags}>
-                    Industries: {student.industries.join(", ")}
-                  </Text>
-                  {student.externalLink && (
-                    <TouchableOpacity
-                      style={styles.linkedinButton}
-                      onPress={() => openLinkedInProfile(student.externalLink)}
-                    >
-                      <Text style={styles.linkedinButtonText}>View LinkedIn Profile</Text>
-                    </TouchableOpacity>
-                  )}
-                </ScrollView>
-              </View>
-            )}
-            onSwipedLeft={(index) => handleDeclineStudent(students[index])}
-            onSwipedRight={(index) => handleAcceptStudent(students[index])}
-            stackSize={3}
-            backgroundColor="#F5F7FA"
-          />
-
+          <View style={styles.swipeContainer}>
+            <TouchableOpacity onPress={() => setSelectedVacancyId(null)} style={styles.goBackButton}>
+              <Text style={styles.goBackButtonText}>← Back</Text>
+            </TouchableOpacity>
+            <Swiper
+              cards={students}
+              renderCard={(student) => (
+                <View key={student.id} style={styles.card}>
+                  <ScrollView>
+                    <Text style={styles.cardTitle}>
+                      {student.firstName} {student.lastName}
+                    </Text>
+                    <Text style={styles.cardDetails}>Email: {student.email}</Text>
+                    <Text style={styles.cardDetails}>Phone: {student.phoneNumber}</Text>
+                    <Text style={styles.cardDetails}>Study: {student.study}</Text>
+                    <Text style={styles.cardTags}>
+                      Skills: {student.skills.join(", ")}
+                    </Text>
+                    <Text style={styles.cardTags}>
+                      Industries: {student.industries.join(", ")}
+                    </Text>
+                    {student.externalLink && (
+                      <TouchableOpacity
+                        style={styles.linkedinButton}
+                        onPress={() => openLinkedInProfile(student.externalLink)}
+                      >
+                        <Text style={styles.linkedinButtonText}>View LinkedIn Profile</Text>
+                      </TouchableOpacity>
+                    )}
+                  </ScrollView>
+                </View>
+              )}
+              onSwipedLeft={(index) => handleDeclineStudent(students[index])}
+              onSwipedRight={(index) => handleAcceptStudent(students[index])}
+              stackSize={3}
+              backgroundColor="#F5F7FA"
+            />
+          </View>
           <View style={styles.swipeIndicators}>
             <Text style={styles.declineIndicator}>← Decline</Text>
             <Text style={styles.acceptIndicator}>Accept →</Text>
@@ -395,6 +398,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+
+swipeContainer: {
+  flex: 1,
+  paddingHorizontal: 15,
+  paddingTop: 10,
+  paddingBottom: 20,
+  backgroundColor: "#F5F7FA",
+},
+
 });
 
 export default CompanyMatchScreen;
